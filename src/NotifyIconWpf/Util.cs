@@ -25,9 +25,12 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 using System.Windows.Threading;
 using Hardcodet.Wpf.TaskbarNotification.Interop;
@@ -161,25 +164,47 @@ namespace Hardcodet.Wpf.TaskbarNotification
         /// <summary>
         /// Reads a given image resource into a WinForms icon.
         /// </summary>
-        /// <param name="imageSource">Image source pointing to
+        /// <param name="imageSource">Image source containing a <see cref="DrawingImage"/> or pointing to
         /// an icon file (*.ico).</param>
-        /// <returns>An icon object that can be used with the
+        /// <returns>An <see cref="Icon"/> object that can be used with the
         /// taskbar area.</returns>
         public static Icon ToIcon(this ImageSource imageSource)
         {
             if (imageSource == null) return null;
-
-            Uri uri = new Uri(imageSource.ToString());
-            StreamResourceInfo streamInfo = Application.GetResourceStream(uri);
-
-            if (streamInfo == null)
+            string strSource = imageSource.ToString();
+            int width = (int)SystemParameters.SmallIconWidth;
+            int height = (int)SystemParameters.SmallIconHeight;
+            switch (strSource)
             {
-                string msg = "The supplied image source '{0}' could not be resolved.";
-                msg = string.Format(msg, imageSource);
-                throw new ArgumentException(msg);
+                case "System.Windows.Media.DrawingImage":
+                {
+                        System.Windows.Controls.Image drawingImage = new() { Source = imageSource as DrawingImage };
+                        drawingImage.Arrange(new Rect(0,0, SystemParameters.SmallIconWidth, SystemParameters.SmallIconHeight));
+                        RenderTargetBitmap renderedBitmap = new(width, height, 96,96, PixelFormats.Pbgra32);
+                        renderedBitmap.Render(drawingImage);
+                        PngBitmapEncoder encoder = new();
+                        encoder.Frames.Add(BitmapFrame.Create(renderedBitmap));
+                        using MemoryStream ms = new();
+                        encoder.Save(ms);
+                        using Bitmap bitmap = new(ms);
+                        return Icon.FromHandle(bitmap.GetHicon());
+                    }
+                default:
+                {
+                    Uri uri = new(strSource);
+                    StreamResourceInfo streamInfo = Application.GetResourceStream(uri);
+
+                    if (streamInfo == null)
+                    {
+                        string msg = "The supplied image source '{0}' could not be resolved.";
+                        msg = string.Format(msg, imageSource);
+                        throw new ArgumentException(msg);
+                    }
+                    return new Icon(streamInfo.Stream, width, height);
+                    }
             }
 
-            return new Icon(streamInfo.Stream);
+            
         }
 
         #endregion

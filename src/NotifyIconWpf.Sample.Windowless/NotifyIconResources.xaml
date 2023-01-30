@@ -3,6 +3,32 @@
                     xmlns:tb="http://www.hardcodet.net/taskbar"
                     xmlns:local="clr-namespace:NotifyIconWpf.Sample.Windowless">
 
+    <!-- Vector image to be used as tray icon -->
+    <!--#region XAML_Icons_ApplicationWindow-->
+    <DrawingImage x:Key="XAML_Icons_ApplicationWindow">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M16,16L0,16 0,0 16,0 16,16z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush
+                            Opacity="0"
+                            Color="#FFF6F6F6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing
+                    Brush="#FFF6F6F6"
+                    Geometry="F1 M16,16z M0,0z M16,15L0,15 0,1 16,1 16,15z" />
+                <GeometryDrawing
+                    Brush="#FF424242"
+                    Geometry="F1 M16,16z M0,0z M1,2L1,14 15,14 15,2 1,2z M14,13L2,13 2,5 14,5 14,13z" />
+                <GeometryDrawing
+                    Brush="#FFF0EFF1"
+                    Geometry="F1 M16,16z M0,0z M14,13L2,13 2,5 14,5 14,13z" />
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    <!--#endregion XAML_Icons_ApplicationWindow-->
+
     <!-- The taskbar context menu - the first row is a dummy to show off simple data binding -->
     <!--
         The "shared" directive is needed if we reopen the sample window a few times - WPF will otherwise
@@ -18,11 +44,11 @@
 
     <!-- the application's NotifyIcon - started from App.xaml.cs. Declares its own view model. -->
     <tb:TaskbarIcon x:Key="NotifyIcon"
-                    IconSource="/Red.ico"
+                    
                     ToolTipText="Double-click for window, right-click for menu"
                     DoubleClickCommand="{Binding ShowWindowCommand}"
-                    ContextMenu="{StaticResource SysTrayMenu}">
-
+                    ContextMenu="{StaticResource SysTrayMenu}"
+                    IconSource="{StaticResource XAML_Icons_ApplicationWindow}">
         <!-- self-assign a data context (could also be done programmatically) -->
         <tb:TaskbarIcon.DataContext>
             <local:NotifyIconViewModel />
